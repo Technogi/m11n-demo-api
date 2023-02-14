@@ -1,1 +1,1 @@
-import * as api from 'aws-cdk-lib/aws-sagemaker';
+import * as forecast from 'aws-cdk-lib/aws-forecast';

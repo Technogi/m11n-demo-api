@@ -11,6 +11,7 @@ export const handler: CdkCustomResourceHandler = async (event, ctx) => {
       Key: { product_id: id }
     }).promise()))
   }
+
   if (event.RequestType === 'Create' || event.RequestType === 'Update') {
     const client = new DocumentClient()
     await client.batchWrite({
@@ -18,7 +19,7 @@ export const handler: CdkCustomResourceHandler = async (event, ctx) => {
         [process.env.TABLE_NAME || '']: products.map(({ id, name, price }) => ({
           PutRequest: {
             Item: {
-              product_id: id,
+              'product-id': id,
               name,
               price,
               sales: 0

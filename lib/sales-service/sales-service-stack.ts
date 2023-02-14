@@ -6,7 +6,7 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import * as nodejs from 'aws-cdk-lib/aws-lambda-nodejs';
 import { Provider } from 'aws-cdk-lib/custom-resources';
 import { resolve } from 'path';
-import { StackProps } from './commons';
+import { StackProps } from '../commons';
 
 export class SalesServiceStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
@@ -15,7 +15,7 @@ export class SalesServiceStack extends cdk.Stack {
     const salesTable = new dynamodb.Table(this, 'SalesTable', {
       tableName: `${props.app}-sales`,
       partitionKey: {
-        name: 'product_id',
+        name: 'product-id',
         type: dynamodb.AttributeType.NUMBER
       },
       removalPolicy: cdk.RemovalPolicy.DESTROY
@@ -23,14 +23,14 @@ export class SalesServiceStack extends cdk.Stack {
 
     const salesTableInitializerLambda = new nodejs.NodejsFunction(this, 'SalesDbInitializerLambda', {
       functionName: `${props.app}-sales-init`,
-      entry: resolve(__dirname, 'sales-service/lambdas/init-db-lambda.ts'),
+      entry: resolve(__dirname, 'lambdas/init-db-lambda.ts'),
       environment: {
         TABLE_NAME: salesTable.tableName
       }
     })
     salesTable.grantWriteData(salesTableInitializerLambda)
 
-    const salesInit = new cdk.CustomResource(this, 'SalesInitResource', {
+    new cdk.CustomResource(this, 'SalesInitResource', {
       serviceToken: new Provider(this, 'SalesInitProvider', { onEventHandler: salesTableInitializerLambda }).serviceToken,
       properties: {
         //customResourceNumber: props.customResourceNumber,
@@ -39,7 +39,7 @@ export class SalesServiceStack extends cdk.Stack {
 
     const salesProjectionLambda = new nodejs.NodejsFunction(this, 'SalesProjectionLambda', {
       functionName: `${props.app}-sales-projection`,
-      entry: resolve(__dirname, 'sales-service/lambdas/sales-projection-lambda.ts'),
+      entry: resolve(__dirname, 'lambdas/sales-projection-lambda.ts'),
       environment: {
         TABLE_NAME: salesTable.tableName
       }
@@ -59,7 +59,7 @@ export class SalesServiceStack extends cdk.Stack {
       targets: [new targets.LambdaFunction(salesProjectionLambda)],
       eventPattern: {
         detailType: ['NewSale'],
-        source: ['pos'],
+        source: ['pos:m11n', 'pos:*'],
       }
     })
 

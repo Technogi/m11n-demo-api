@@ -11,11 +11,13 @@ const run = async () => {
   await eventBus.putEvents({
     Entries: [{
       EventBusName: 'm11n-hermes',
+      Source: 'pos:m11n',
       DetailType: 'NewSale',
-      Source: 'pos',
       Detail: JSON.stringify({
-        product_id: product.id,
-        sold_on: Date.now()
+        'event-type': 'NewSale',
+        'product-id': product.id,
+        'sold-on': 1676332922655,
+        tenant: 'technogi'
       })
     }],
   }).promise()
