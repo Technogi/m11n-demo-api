@@ -10,6 +10,8 @@ import { StackProps } from '../commons';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+const headerMapping = (val: string) => `method.response.header.${val}`
+
 export class ApiStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
     super(scope, id, props);
@@ -57,21 +59,31 @@ export class ApiStack extends cdk.Stack {
       zone,
     })
 
+    const responseParametersVals = {
+      [headerMapping("Access-Control-Allow-Headers")]: `'${apiGw.Cors.DEFAULT_HEADERS.join(',')}'`,
+      [headerMapping("Access-Control-Allow-Origin")]: "'*'",
+      [headerMapping("Access-Control-Allow-Credentials")]: "'false'",
+      [headerMapping("Access-Control-Allow-Methods")]: `'${apiGw.Cors.ALL_METHODS.join(',')}'`,
+    }
+
     const errorResponses: cdk.aws_apigateway.IntegrationResponse[] = [
       {
         selectionPattern: '400',
         statusCode: '400',
+        responseParameters: responseParametersVals,
         responseTemplates: { 'application/json': `{ "error": "Bad input!" }` },
       },
       {
         selectionPattern: '5\\d{2}',
         statusCode: '500',
+        responseParameters: responseParametersVals,
         responseTemplates: { 'application/json': `{"error": "Internal Service Error!"}` },
       },
     ];
 
-    const getByIdIntegrationResponses = [{
+    const getByIdIntegrationResponses: cdk.aws_apigateway.IntegrationResponse[] = [{
       statusCode: '200',
+      responseParameters: responseParametersVals,
       responseTemplates: {
         "application/json": readFileSync(join(__dirname, 'get-by-id-response-template.vtl'), { encoding: 'utf8', flag: 'r' })
       }
@@ -81,6 +93,7 @@ export class ApiStack extends cdk.Stack {
     const getAllIntegrationResponses: cdk.aws_apigateway.IntegrationResponse[] = [
       {
         statusCode: '200',
+        responseParameters: responseParametersVals,
         responseTemplates: {
           "application/json": readFileSync(join(__dirname, 'get-all-response-template.vtl'), { encoding: 'utf8', flag: 'r' })
         }
@@ -125,7 +138,20 @@ export class ApiStack extends cdk.Stack {
       service: 'dynamodb',
     });
 
-    const methodOptions = { methodResponses: [{ statusCode: '200' }, { statusCode: '400' }, { statusCode: '500' }] };
+    const responseParameters = {
+      [headerMapping("Access-Control-Allow-Headers")]: true,
+      [headerMapping("Access-Control-Allow-Methods")]: true,
+      [headerMapping("Access-Control-Allow-Credentials")]: true,
+      [headerMapping("Access-Control-Allow-Origin")]: true,
+    }
+
+    const methodOptions: cdk.aws_apigateway.MethodOptions = {
+      methodResponses: [
+        { statusCode: '200', responseParameters },
+        { statusCode: '400', responseParameters },
+        { statusCode: '500', responseParameters }
+      ]
+    };
 
     salesResource.addMethod('GET', getAllIntegration, methodOptions);
     salesByIdResource.addMethod('GET', getIntegration, methodOptions);

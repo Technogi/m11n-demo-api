@@ -3,16 +3,14 @@ import { ForecastQueryService } from "aws-sdk";
 
 const forecastQuery = new ForecastQueryService()
 
-export const handler: APIGatewayProxyHandler = async (request) => {
-  console.log('Got request for:', request.path)
-  console.log('Got request for Q:', request.queryStringParameters)
+export const handler: APIGatewayProxyHandler = async request => {
   try {
     const forecast = await forecastQuery
       .queryForecast({
         ForecastArn: process.env.FORECAST_ARN || '',
-        StartDate: "2023-02-14T00:00:00",
-        EndDate: "2023-02-21T00:00:00",
-        Filters: { item_id: "15" },
+        StartDate: request.queryStringParameters?.s || "2023-02-14T00:00:00",
+        EndDate: request.queryStringParameters?.e || "2023-02-21T00:00:00",
+        Filters: { item_id: request?.pathParameters?.id || '' },
       })
       .promise();
     return {

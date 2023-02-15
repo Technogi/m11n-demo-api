@@ -23,6 +23,7 @@
     "typescript": "~4.9.5"
   },
   "dependencies": {
+    "@aws-cdk/aws-amplify-alpha": "^2.64.0-alpha.0",
     "aws-cdk-lib": "2.64.0",
     "constructs": "^10.0.0",
     "dotenv": "^16.0.3",
