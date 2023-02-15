@@ -20,12 +20,11 @@ const props = {
 const app = new cdk.App();
 
 const salesService = new SalesServiceStack(app, 'SalesServiceStack', { ...props, });
-
 const forecastService = new ForecastServiceStack(app, 'ForecastServiceStack', { ...props })
-
 const auth = new AuthStack(app, 'AuthStack', { ...props })
 const api = new ApiStack(app, 'ApiServiceStack', { ...props })
 
+api.node.addDependency(auth)
 api.node.addDependency(salesService)
 api.node.addDependency(forecastService)
 
