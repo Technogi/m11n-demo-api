@@ -24,13 +24,17 @@ export class ForecastServiceStack extends cdk.Stack {
       functionName: `${props.app}-sales-forecast`,
       entry: resolve(__dirname, 'lambdas/sales-forecast.ts'),
       environment: {
-        FORECAST_ARN: `arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.SALES_FORECAST_NAME}`
+        DAILY_FORECAST_ARN: `arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.DAILY_SALES_FORECAST_NAME}`,
+        MONTHLY_FORECAST_ARN: `arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.MONTHLY_SALES_FORECAST_NAME}`
       }
     })
 
     forecastLambda.addToRolePolicy(new PolicyStatement({
       effect: Effect.ALLOW,
-      resources: [`arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.SALES_FORECAST_NAME}`],
+      resources: [
+        `arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.DAILY_SALES_FORECAST_NAME}`,
+        `arn:aws:forecast:${this.region}:${this.account}:forecast/${process.env.MONTHLY_SALES_FORECAST_NAME}`
+      ],
       actions: ['forecast:QueryForecast']
     }))
 
